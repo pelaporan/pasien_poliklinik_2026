@@ -3085,18 +3085,18 @@ export default function App() {
                   </button>
                 </div>
 
-                <div className="mt-6 overflow-hidden border border-slate-100 rounded-xl">
+                <div className="mt-6 max-h-[600px] overflow-auto border border-slate-100 rounded-xl">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="bg-slate-50 border-b border-slate-100">
-                        <th className="p-3 text-left font-semibold text-slate-500 w-12">No.</th>
-                        <th className="p-3 text-left font-semibold text-slate-500">Code ICD 10</th>
-                        <th className="p-3 text-left font-semibold text-slate-500">Deskripsi ICD 10</th>
-                        <th className="p-3 text-center font-semibold text-slate-500">Action</th>
+                        <th className="p-3 text-left font-semibold text-slate-500 w-12 text-[11px] uppercase tracking-wider sticky top-0 bg-slate-50 z-10 shadow-[inset_0_-1px_0_rgba(241,245,249,1)]">No.</th>
+                        <th className="p-3 text-left font-semibold text-slate-500 text-[11px] uppercase tracking-wider sticky top-0 bg-slate-50 z-10 shadow-[inset_0_-1px_0_rgba(241,245,249,1)]">Code ICD 10</th>
+                        <th className="p-3 text-left font-semibold text-slate-500 text-[11px] uppercase tracking-wider sticky top-0 bg-slate-50 z-10 shadow-[inset_0_-1px_0_rgba(241,245,249,1)]">Deskripsi ICD 10</th>
+                        <th className="p-3 text-center font-semibold text-slate-500 text-[11px] uppercase tracking-wider sticky top-0 bg-slate-50 z-10 shadow-[inset_0_-1px_0_rgba(241,245,249,1)]">Action</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50">
-                      {filteredInputDiseases.slice(0, 10).map((row, i) => (
+                      {filteredInputDiseases.map((row, i) => (
                         <tr key={i} className="hover:bg-slate-50 transition-colors">
                           <td className="p-3 text-slate-500">{i + 1}</td>
                           <td className="p-3 font-mono font-medium text-slate-700">{row.icd}</td>

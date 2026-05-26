@@ -38,6 +38,10 @@ import {
   ArrowUpDown,
   FileSpreadsheet,
   FileText,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
 } from 'lucide-react';
 import { format, parseISO, isValid, startOfDay } from 'date-fns';
 import { clsx, type ClassValue } from 'clsx';
@@ -335,6 +339,8 @@ export default function App() {
   const [inputMonth, setInputMonth] = useState('Januari');
   const [inputValues, setInputValues] = useState<Record<string, { L: number, P: number }>>({});
   const [totalVisitsInput, setTotalVisitsInput] = useState<{ L: number, P: number }>({ L: 0, P: 0 });
+  const [inputDiseasesPageSize, setInputDiseasesPageSize] = useState<number | 'All'>(10);
+  const [inputDiseasesCurrentPage, setInputDiseasesCurrentPage] = useState<number>(1);
 
   const handleSelectDisease = (disease: any) => {
     setSelectedDiseaseForInput(disease);
@@ -524,8 +530,16 @@ export default function App() {
 
   // Sync Input RL 5.1 period with global filters when they change
   useEffect(() => {
-    if (selectedYear !== 'All') setInputYear(selectedYear);
-    if (selectedMonth !== 'All') setInputMonth(selectedMonth);
+    if (selectedYear !== 'All') {
+      setInputYear(selectedYear);
+    } else {
+      setInputYear('Semua Tahun');
+    }
+    if (selectedMonth !== 'All') {
+      setInputMonth(selectedMonth);
+    } else {
+      setInputMonth('Semua Bulan');
+    }
   }, [selectedYear, selectedMonth]);
 
   const getAgeGroupId = (row: PatientData) => {
@@ -756,6 +770,19 @@ export default function App() {
       item.diagnosis.toLowerCase().includes(inputSearchTerm.toLowerCase())
     );
   }, [diagnosisStats, inputSearchTerm]);
+
+  const paginatedInputDiseases = useMemo(() => {
+    if (inputDiseasesPageSize === 'All') {
+      return filteredInputDiseases;
+    }
+    const startIndex = (inputDiseasesCurrentPage - 1) * inputDiseasesPageSize;
+    return filteredInputDiseases.slice(startIndex, startIndex + inputDiseasesPageSize);
+  }, [filteredInputDiseases, inputDiseasesPageSize, inputDiseasesCurrentPage]);
+
+  const totalInputDiseasesPages = useMemo(() => {
+    if (inputDiseasesPageSize === 'All' || filteredInputDiseases.length === 0) return 1;
+    return Math.ceil(filteredInputDiseases.length / inputDiseasesPageSize);
+  }, [filteredInputDiseases, inputDiseasesPageSize]);
 
   const rl52Stats = useMemo(() => {
     if (filteredData.length === 0) return [];
@@ -3075,49 +3102,162 @@ export default function App() {
                     <input 
                       type="text" 
                       placeholder="Search Nama Penyakit / KODE ICD10" 
-                      className="w-full pl-4 pr-4 py-3 bg-slate-50 border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500 rounded-xl text-sm transition-all"
+                      className="w-full pl-4 pr-4 py-3 bg-slate-50 border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500 rounded-xl text-sm transition-all outline-none"
                       value={inputSearchTerm}
-                      onChange={(e) => setInputSearchTerm(e.target.value)}
+                      onChange={(e) => {
+                        setInputSearchTerm(e.target.value);
+                        setInputDiseasesCurrentPage(1);
+                      }}
                     />
                   </div>
-                  <button className="bg-emerald-50 text-emerald-700 font-bold px-6 py-2 rounded-lg flex items-center gap-2 hover:bg-emerald-100 transition-colors">
-                    <Search className="w-4 h-4" /> Cari
-                  </button>
                 </div>
 
-                <div className="mt-6 max-h-[600px] overflow-auto border border-slate-100 rounded-xl">
-                  <table className="w-full text-sm">
+                <div className="mt-6 max-h-[500px] overflow-auto border border-slate-100 rounded-xl shadow-inner bg-slate-50/50">
+                  <table className="w-full text-sm border-collapse">
                     <thead>
-                      <tr className="bg-slate-50 border-b border-slate-100">
-                        <th className="p-3 text-left font-semibold text-slate-500 w-12 text-[11px] uppercase tracking-wider sticky top-0 bg-slate-50 z-10 shadow-[inset_0_-1px_0_rgba(241,245,249,1)]">No.</th>
-                        <th className="p-3 text-left font-semibold text-slate-500 text-[11px] uppercase tracking-wider sticky top-0 bg-slate-50 z-10 shadow-[inset_0_-1px_0_rgba(241,245,249,1)]">Code ICD 10</th>
-                        <th className="p-3 text-left font-semibold text-slate-500 text-[11px] uppercase tracking-wider sticky top-0 bg-slate-50 z-10 shadow-[inset_0_-1px_0_rgba(241,245,249,1)]">Deskripsi ICD 10</th>
-                        <th className="p-3 text-center font-semibold text-slate-500 text-[11px] uppercase tracking-wider sticky top-0 bg-slate-50 z-10 shadow-[inset_0_-1px_0_rgba(241,245,249,1)]">Action</th>
+                      <tr className="bg-slate-800 text-white">
+                        <th className="p-3 text-left font-semibold text-[11px] uppercase tracking-wider sticky top-0 bg-slate-800 z-10 w-12 border-b border-slate-700">No.</th>
+                        <th className="p-3 text-left font-semibold text-[11px] uppercase tracking-wider sticky top-0 bg-slate-800 z-10 border-b border-slate-700">Code ICD 10</th>
+                        <th className="p-3 text-left font-semibold text-[11px] uppercase tracking-wider sticky top-0 bg-slate-800 z-10 border-b border-slate-700">Deskripsi ICD 10</th>
+                        <th className="p-3 text-center font-semibold text-[11px] uppercase tracking-wider sticky top-0 bg-slate-800 z-10 w-36 border-b border-slate-700">Action</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-50">
-                      {filteredInputDiseases.map((row, i) => (
-                        <tr key={i} className="hover:bg-slate-50 transition-colors">
-                          <td className="p-3 text-slate-500">{i + 1}</td>
-                          <td className="p-3 font-mono font-medium text-slate-700">{row.icd}</td>
-                          <td className="p-3 text-slate-600">{row.diagnosis}</td>
-                          <td className="p-3 text-center">
-                            <button 
-                              onClick={() => handleSelectDisease(row)}
-                              className={cn(
-                                "px-3 py-1 border rounded-lg text-xs font-bold transition-all",
-                                selectedDiseaseForInput?.icd === row.icd 
-                                  ? "bg-emerald-600 border-emerald-600 text-white" 
-                                  : "border-emerald-500 text-emerald-600 hover:bg-emerald-50"
-                              )}
-                            >
-                              {selectedDiseaseForInput?.icd === row.icd ? 'Terpilih' : 'Pilih & Lihat Data'}
-                            </button>
+                    <tbody className="divide-y divide-slate-100 bg-white">
+                      {paginatedInputDiseases.length === 0 ? (
+                        <tr>
+                          <td colSpan={4} className="p-8 text-center text-slate-400 italic bg-white">
+                            Tidak ada data penyakit ditemukan
                           </td>
                         </tr>
-                      ))}
+                      ) : (
+                        paginatedInputDiseases.map((row, i) => {
+                          const globalIdx = inputDiseasesPageSize === 'All' 
+                            ? i 
+                            : (inputDiseasesCurrentPage - 1) * inputDiseasesPageSize + i;
+                          const isSelected = selectedDiseaseForInput?.icd === row.icd;
+                          return (
+                            <tr 
+                              key={i} 
+                              className={cn(
+                                "hover:bg-blue-50/50 transition-colors duration-150 ease-in-out",
+                                globalIdx % 2 === 0 ? "bg-white" : "bg-slate-50/40",
+                                isSelected && "bg-emerald-50/35 hover:bg-emerald-50/50"
+                              )}
+                            >
+                              <td className="p-3 text-slate-400 font-medium text-xs font-mono">{globalIdx + 1}</td>
+                              <td className="p-3 font-mono font-bold text-slate-800 text-xs">{row.icd}</td>
+                              <td className="p-3 text-slate-600 text-xs font-medium leading-relaxed" title={row.diagnosis}>{row.diagnosis}</td>
+                              <td className="p-3 text-center">
+                                <button 
+                                  onClick={() => handleSelectDisease(row)}
+                                  className={cn(
+                                    "px-3 py-1.5 border rounded-lg text-xs font-bold transition-all shadow-sm w-full sm:w-auto",
+                                    isSelected 
+                                      ? "bg-emerald-600 border-emerald-600 text-white hover:bg-emerald-700 hover:border-emerald-700" 
+                                      : "border-slate-200 bg-white text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300"
+                                  )}
+                                >
+                                  {isSelected ? 'Terpilih' : 'Pilih & Lihat'}
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
                     </tbody>
                   </table>
+                </div>
+
+                {/* Pagination & Rows Info */}
+                <div className="mt-4 flex flex-col md:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-100 text-xs text-slate-500">
+                  <div className="flex items-center gap-2">
+                    <span>Tampilkan:</span>
+                    <select
+                      value={inputDiseasesPageSize}
+                      onChange={(e) => {
+                        const val = e.target.value === 'All' ? 'All' : Number(e.target.value);
+                        setInputDiseasesPageSize(val);
+                        setInputDiseasesCurrentPage(1);
+                      }}
+                      className="bg-white border border-slate-200 rounded-lg px-2.5 py-1 text-slate-700 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer shadow-sm"
+                    >
+                      <option value={10}>10</option>
+                      <option value={25}>25</option>
+                      <option value={50}>50</option>
+                      <option value="All">Semua</option>
+                    </select>
+                    <span>data per halaman</span>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <span>
+                      {filteredInputDiseases.length > 0 ? (
+                        <>
+                          Menampilkan{' '}
+                          <strong className="text-slate-700">
+                            {inputDiseasesPageSize === 'All' ? 1 : (inputDiseasesCurrentPage - 1) * inputDiseasesPageSize + 1}
+                          </strong>
+                          -
+                          <strong className="text-slate-700">
+                            {inputDiseasesPageSize === 'All' 
+                              ? filteredInputDiseases.length 
+                              : Math.min(inputDiseasesCurrentPage * inputDiseasesPageSize, filteredInputDiseases.length)}
+                          </strong>{' '}
+                          dari <strong className="text-slate-700">{filteredInputDiseases.length}</strong> data
+                        </>
+                      ) : (
+                        'Tidak ada data'
+                      )}
+                    </span>
+
+                    {inputDiseasesPageSize !== 'All' && totalInputDiseasesPages > 1 && (
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => setInputDiseasesCurrentPage(1)}
+                          disabled={inputDiseasesCurrentPage === 1}
+                          className="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 enabled:hover:text-blue-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"
+                          title="Halaman Pertama"
+                        >
+                          <ChevronsLeft className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => setInputDiseasesCurrentPage(prev => Math.max(prev - 1, 1))}
+                          disabled={inputDiseasesCurrentPage === 1}
+                          className="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 enabled:hover:text-blue-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"
+                          title="Halaman Sebelumnya"
+                        >
+                          <ChevronLeft className="w-3.5 h-3.5" />
+                        </button>
+                        
+                        <div className="flex items-center gap-1 px-1 text-[11px]">
+                          <span className="font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md">
+                            {inputDiseasesCurrentPage}
+                          </span>
+                          <span className="text-slate-400">/</span>
+                          <span className="text-slate-500">
+                            {totalInputDiseasesPages}
+                          </span>
+                        </div>
+
+                        <button
+                          onClick={() => setInputDiseasesCurrentPage(prev => Math.min(prev + 1, totalInputDiseasesPages))}
+                          disabled={inputDiseasesCurrentPage === totalInputDiseasesPages}
+                          className="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 enabled:hover:text-blue-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"
+                          title="Halaman Berikutnya"
+                        >
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => setInputDiseasesCurrentPage(totalInputDiseasesPages)}
+                          disabled={inputDiseasesCurrentPage === totalInputDiseasesPages}
+                          className="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 enabled:hover:text-blue-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"
+                          title="Halaman Terakhir"
+                        >
+                          <ChevronsRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -3175,15 +3315,18 @@ export default function App() {
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Bulan</label>
-                      <select 
-                        className="w-full px-4 py-3 bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500"
-                        value={inputMonth}
-                        onChange={(e) => setInputMonth(e.target.value)}
-                      >
-                        {['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'].map(m => (
-                          <option key={m} value={m}>{m}</option>
-                        ))}
-                      </select>
+                      <div className="relative">
+                        <input 
+                          type="text" 
+                          readOnly
+                          className="w-full px-4 py-3 bg-slate-50 border border-slate-200/60 rounded-xl font-semibold text-slate-600 transition-all select-none shadow-sm focus:outline-none cursor-not-allowed"
+                          value={inputMonth}
+                        />
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5 bg-blue-50 text-blue-600 text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-lg border border-blue-100 shadow-[0_1px_2px_rgba(37,99,235,0.05)]">
+                          <span className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse"></span>
+                          Sinkron
+                        </div>
+                      </div>
                     </div>
                   </div>
 

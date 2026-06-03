@@ -117,6 +117,13 @@ const getColByIndex = (row: PatientData, index: number) => {
   return '';
 };
 
+const toSentenceCase = (str: any): string => {
+  if (str === null || str === undefined) return '';
+  const s = String(str).trim();
+  if (s.length === 0) return '';
+  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+};
+
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#8dd1e1'];
 
 const ageGroupsList = [
@@ -728,11 +735,11 @@ export default function App() {
         }
       }
 
-      const key = `${icd}-${diagnosis}`;
+      const key = `${icd}-${toSentenceCase(diagnosis).toLowerCase()}`;
       if (!diagnosisMap[key]) {
         diagnosisMap[key] = {
           icd,
-          diagnosis,
+          diagnosis: toSentenceCase(diagnosis),
           ageGroups: {},
           totalNew: { L: 0, P: 0, total: 0 },
           totalVisits: { L: 0, P: 0, total: 0 },
@@ -798,11 +805,11 @@ export default function App() {
       const isNewCaseVal = getCol(row, ['KASUS BARU', 'NEW CASE', 'BARU']) || getColByIndex(row, 13) || '';
       const isNewCase = isNewCaseVal.toLowerCase().trim() === 'v';
       
-      const key = `${icd}-${diagnosis}`;
+      const key = `${icd}-${toSentenceCase(diagnosis).toLowerCase()}`;
       if (!diagnosisMap[key]) {
         diagnosisMap[key] = {
           icd,
-          diagnosis,
+          diagnosis: toSentenceCase(diagnosis),
           totalNew: { L: 0, P: 0, total: 0 },
           totalVisits: { L: 0, P: 0, total: 0 },
         };
@@ -838,11 +845,11 @@ export default function App() {
       const isNewCaseVal = getCol(row, ['KASUS BARU', 'NEW CASE', 'BARU']) || getColByIndex(row, 13) || '';
       const isNewCase = isNewCaseVal.toLowerCase().trim() === 'v';
       
-      const key = `${icd}-${diagnosis}`;
+      const key = `${icd}-${toSentenceCase(diagnosis).toLowerCase()}`;
       if (!diagnosisMap[key]) {
         diagnosisMap[key] = {
           icd,
-          diagnosis,
+          diagnosis: toSentenceCase(diagnosis),
           totalNew: { L: 0, P: 0, total: 0 },
           totalVisits: { L: 0, P: 0, total: 0 },
         };
